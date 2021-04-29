@@ -1,0 +1,172 @@
+SMERGE.INP      2.1             Hour Start and End Times with Seconds
+-------------------------------------------------------------------------------
+
+                     SMERGE PROCESSOR CONTROL FILE
+                 --------------------------------------
+
+    CALMET accepts data for a number of 'surface meteorology stations'
+    in a single SURF.DAT file.  SMERGE creates this file from several
+    single-station files of hourly data.  Use SMERGE one or more times
+    to build the SURF.DAT file.
+
+-------------------------------------------------------------------------------
+
+INPUT GROUP: 0 -- Input and Output File Names
+-----------------------------------------------------
+
+--------------
+Subgroup (0a)
+--------------
+
+    Number of formatted Surface Station files provided
+    in Subgroup 0b.  Up to MXFF are allowed in 1 application,
+    although this may be limited by your operating system.
+    MXFF is set in PARAMS.SMG, which is compiled into SMERGE.EXE.
+    (NFF)          No Default         ! NFF = 1 !
+
+Other Input and Output Files:
+-----------------------------
+
+Default Name  Type          File Name
+------------  ----          ---------
+    PREV.DAT       input    ! PREVDAT =  !
+    SURF.DAT       output   ! SURFDAT = surf.dat !
+    SMERGE.LST     output   ! RUNLST = smerge.lst !
+
+
+    All file names will be converted to lower case if LCFILES = T
+    Otherwise, if LCFILES = F, file names will be converted to UPPER CASE
+    (LCFILES)       Default: T       ! LCFILES = F !
+             T = lower case
+             F = UPPER CASE
+    NOTE: File/path names can be up to 70 characters in length
+
+!END!
+
+-------------
+Subgroup (0b)
+-------------
+
+    The following NFF formatted Surface Station files are processed.
+    Enter NFF 4-line groups identifying the file name (SFCMET), the
+    station number (IFSTN), the station elevation (optional) in meters
+    (XELEV), and the time zone of the data (ASTZ) for each file,
+    followed by a group terminator.
+
+    NOTE:  ASTZ identifies the time zone used in the dataset.  The
+           TD3505 and TD9956 data are prepared in UTC time rather than
+           local time, so ASTZ = UTC+0000. is expected for these.
+
+    The optional station elevation is a default value used to calculate
+    a station pressure from altimeter or sea-level pressure if the
+    station presure is missing and the station elevation is missing in
+    the file.  If XELEV is not assigned a value (i.e. XELEV does not
+    appear in this control file), then no default elevation is available
+    and station pressure remains missing.
+
+
+    ! SFCMET = N37.7559E111.8798µØÃæ-2018.sam !
+    ! IFSTN = 50000 !
+    ! ASTZ = UTC+0800 ! !END!
+    
+    
+
+
+-----------------------------------------------------------------------------
+INPUT GROUP: 1 -- Run control parameters
+---------------
+
+   --- Processing Period ---
+
+       Starting date:  Year (IBYR) -- No default   ! IBYR = 2018 !
+                      Month (IBMO) -- No default   ! IBMO = 1 !
+                        Day (IBDY) -- No default   ! IBDY = 1 !
+                       Hour (IBHR) -- No default   ! IBHR = 0 !
+                    Second (IBSEC) -- No default   ! IBSEC = 0 !
+
+       Ending date:    Year (IEYR) -- No default   ! IEYR = 2018 !
+                      Month (IEMO) -- No default   ! IEMO = 12 !
+                        Day (IEDY) -- No default   ! IEDY = 31 !
+                       Hour (IEHR) -- No default   ! IEHR = 23 !
+                    Second (IESEC) -- No default   ! IESEC = 0 !
+
+      UTC time zone (char*8)(ABTZ) -- No default   ! ABTZ = UTC+0800 !
+         PST = UTC-0800, MST = UTC-0700
+         CST = UTC-0600, EST = UTC-0500
+         GMT = UTC+0000
+
+   -----------------------
+   NOTE:  Use explicit times in hours and seconds in time zone ABTZ.
+
+   --- File Options ---
+
+       Previous SURF.DAT file is used in this run?
+       (LPREV)          No Default        ! LPREV = F !
+             T = Surface data from a previous SURF.DAT file are used
+             F = Previous SURF.DAT file is not used
+
+       Number of stations to use from previous SURF.DAT file
+       (NBSTN)          Default: 0        ! NBSTN = 0 !
+             0 = Use ALL stations
+            >0 = Use only those NBSTN stations listed in Input Group 2
+
+   --- File Formats ---
+
+       Format of previous SURF.DAT file
+       (Used only if LPREV = T
+       (INFORM)          Default: 2        ! INFORM = 2 !
+             1 = Unformatted
+             2 = Formatted
+
+       Format of output SURF.DAT FILE
+       (IOFORM)          Default: 2        ! IOFORM = 2 !
+             1 = Unformatted
+             2 = Formatted
+       (IOPACK)          Default: 0        ! IOPACK = 0 !
+             0 = NOT packed
+             1 = Packed (used only if IOFORM = 1)
+
+       Type of ALL Surface Station files in this run
+       (JDAT)            No Default        ! JDAT = 2 !
+             1 = CD144
+             2 = NCDC SAMSON
+             3 = NCDC HUSWO
+             5 = ISHWO
+             6 = TD3505
+             7 = TD9956 (full DATSAV3)
+             8 = GENERIC (.CSV format - see "sample_generic.csv")
+
+     Format of input HUSWO file
+     (Used only if JDAT = 3)
+     (IHUSWO)                   Default: 1     ! IHUSWO = 1 !
+        1 = All data are in English units
+        2 = All data are in Metric units
+
+     Calculate missing station pressure from altimeter or sea level
+     pressure?
+     (applies to JDAT = 1-3,8; always T for JDAT = 5-7)
+     (LPCALC)                   Default: F     ! LPCALC = F !
+
+
+!END!
+
+-----------------------------------------------------------------------------
+INPUT GROUP: 2 -- Stations used from previous SURF.DAT file
+---------------
+
+   Data for the following NBSTN stations in the previous SURF.DAT
+   file identified as PREV.DAT are transferred to the new SURF.DAT
+   file created in this run.  Enter NBSTN lines identifying the
+   station number (IBSTN) for each, followed by a group terminator.
+   This Input Group is used only if LPREV=T and NBSTN>0.  All stations
+   from a previous SURF.DAT file are transferred to the new SURF.DAT
+   file if NBSTA=0.
+
+
+
+
+   -----------------------
+   Each line is treated as a separate input subgroup and therefore
+   must end with an input group terminator.
+
+

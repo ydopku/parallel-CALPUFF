@@ -1,0 +1,12 @@
+D:\vsproject\CalpuffWorkerG\bin\Debug\netcoreapp2.1\Worker.deps.json
+D:\vsproject\CalpuffWorkerG\bin\Debug\netcoreapp2.1\Worker.runtimeconfig.json
+D:\vsproject\CalpuffWorkerG\bin\Debug\netcoreapp2.1\Worker.runtimeconfig.dev.json
+D:\vsproject\CalpuffWorkerG\bin\Debug\netcoreapp2.1\Worker.dll
+D:\vsproject\CalpuffWorkerG\bin\Debug\netcoreapp2.1\Worker.pdb
+D:\vsproject\CalpuffWorkerG\obj\Debug\netcoreapp2.1\Worker.csprojAssemblyReference.cache
+D:\vsproject\CalpuffWorkerG\obj\Debug\netcoreapp2.1\Worker.AssemblyInfoInputs.cache
+D:\vsproject\CalpuffWorkerG\obj\Debug\netcoreapp2.1\Worker.AssemblyInfo.cs
+D:\vsproject\CalpuffWorkerG\obj\Debug\netcoreapp2.1\Worker.csproj.CoreCompileInputs.cache
+D:\vsproject\CalpuffWorkerG\obj\Debug\netcoreapp2.1\Worker.dll
+D:\vsproject\CalpuffWorkerG\obj\Debug\netcoreapp2.1\Worker.pdb
+D:\vsproject\CalpuffWorkerG\obj\Debug\netcoreapp2.1\Worker.genruntimeconfig.cache

@@ -1,0 +1,13 @@
+D:\vsproject\NewTaskG\NewTask\bin\Debug\netcoreapp3.1\NewTask.exe
+D:\vsproject\NewTaskG\NewTask\bin\Debug\netcoreapp3.1\NewTask.deps.json
+D:\vsproject\NewTaskG\NewTask\bin\Debug\netcoreapp3.1\NewTask.runtimeconfig.json
+D:\vsproject\NewTaskG\NewTask\bin\Debug\netcoreapp3.1\NewTask.runtimeconfig.dev.json
+D:\vsproject\NewTaskG\NewTask\bin\Debug\netcoreapp3.1\NewTask.dll
+D:\vsproject\NewTaskG\NewTask\bin\Debug\netcoreapp3.1\NewTask.pdb
+D:\vsproject\NewTaskG\NewTask\obj\Debug\netcoreapp3.1\NewTask.csprojAssemblyReference.cache
+D:\vsproject\NewTaskG\NewTask\obj\Debug\netcoreapp3.1\NewTask.AssemblyInfoInputs.cache
+D:\vsproject\NewTaskG\NewTask\obj\Debug\netcoreapp3.1\NewTask.AssemblyInfo.cs
+D:\vsproject\NewTaskG\NewTask\obj\Debug\netcoreapp3.1\NewTask.csproj.CoreCompileInputs.cache
+D:\vsproject\NewTaskG\NewTask\obj\Debug\netcoreapp3.1\NewTask.dll
+D:\vsproject\NewTaskG\NewTask\obj\Debug\netcoreapp3.1\NewTask.pdb
+D:\vsproject\NewTaskG\NewTask\obj\Debug\netcoreapp3.1\NewTask.genruntimeconfig.cache
