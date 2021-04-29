@@ -2,6 +2,7 @@
 A parallel algorithm for CALPUFF dispersion model
 
 This code implements the algorithm in the manuscript "A Parallel Computing Algorithm for the Emergency-oriented Atmospheric Dispersion Model CALPUFF".
+
 Authors:Dongou Yang, Mei Li, Hui Liu. Email of corresponding author: mli@pku.edu.cn.
 
 The code is based on Netcoreapp2.1, RabbitMQ.Client5.1.0, and Windows Internet Information Service(IIS).
