@@ -435,14 +435,14 @@ INPUT GROUP: 2 -- Map Projection and Grid Information for Output
 
      Reference point coordinates X,Y (km) for grid
      where X is Easting, Y is Northing
-     (XREFKM)                   No Default      ! XREFKM = 226.7887 !
-     (YREFKM)                   No Default      ! YREFKM = 3468.362 !
+     (XREFKM)                   No Default      ! XREFKM = 212.321 !
+     (YREFKM)                   No Default      ! YREFKM = 3449.793 !
 
      Cartesian grid definition
      (Used only if IGRID=1,2)
-     No. X grid cells (NX)      No default      ! NX = 100 !
-     No. Y grid cells (NY)      No default      ! NY = 100 !
-     Grid Spacing (km)(DGRIDKM) No default      ! DGRIDKM = 0.1 !
+     No. X grid cells (NX)      No default      ! NX = 50 !
+     No. Y grid cells (NY)      No default      ! NY = 50 !
+     Grid Spacing (km)(DGRIDKM) No default      ! DGRIDKM = 1 !
 
      Polar grid definition -- enter ring distances and ray angles
                               in Input Group 3

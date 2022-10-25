@@ -63,6 +63,8 @@ namespace dispersion
         public int SubX, SubY;  //X,Y方向划分数，目前为了结果文件拼接，应只在Y方向划分，SubX必须等于1
         public int SubGridX, SubGridY;  //X,Y方向每一划分的子网格数
         public int LastX, LastY;  //用于处理带余数的最后一行(列)
+        public int SubGridXb, SubGridYb;  //加上缓冲区时需要计算的实际大小
+        public int LastXb, LastYb;  //同上
         public List<double> SubXsw = new List<double>();
         public List<double> SubYsw = new List<double>();  //用于储存每一文件的西南角坐标
 
@@ -72,6 +74,10 @@ namespace dispersion
         public int LayerCount;
         public int LayerPart;
         public int LayerParts;
+
+        //污染物种类
+        public string spec;  //上一次运行时写入文件的污染物种类
+        public string newspec;  //想要改成的新污染物种类
 
         //输入污染源坐标（km）及带号
         public RunCALPUFF(double uSourceX, double uSourceY, double uElevation, int Zone, DateTime youStartTime, int p, int parts)
@@ -85,22 +91,22 @@ namespace dispersion
             EmissionFile = "baemarb.DAT"; // 面源污染秒级文件
 
             StartTime = youStartTime;
-            TimeSpan = 120;//min
-            METTimeStep = 60;//s
-            PUFFTimeStep = 1;//s
+            TimeSpan = 240;//min
+            METTimeStep = 3600;//s
+            PUFFTimeStep = 60;//s
 
             UTMZone = Zone;
             SourceX = uSourceX;
             SourceY = uSourceY;
             Elevation = uElevation;
-            EmissionHeight = 100.000;
-            EmissionRate = 1000.0;
+            EmissionHeight = 1;
+            EmissionRate = 6000.0;
             radius = 2.5E-04;  //不用
             RType = 2;  //不用
             ReNest = 1;
-            GridCellsX = 100;
-            GridCellsY = 100;
-            GridSpace = 0.1;
+            GridCellsX = 50;
+            GridCellsY = 50;
+            GridSpace = 1;
             Xsw = SourceX - GridCellsX * GridSpace * 0.5;
             Ysw = SourceY - GridCellsY * GridSpace * 0.5;
             GridCellsZ = 10;
@@ -113,24 +119,38 @@ namespace dispersion
             UpY = SourceY;
             GeoPath = "";
 
-            WindSpeed = 5; //m/s  
-            WindDirection = 0; //degree
-            CeilingHeight = 808; //云底高度 9999  hundreds of feet
+            //高桥
+            WindSpeed = 1.5; //m/s  
+            WindDirection = 270; //degree
+            CeilingHeight = 100; //云底高度 9999  hundreds of feet
             OpaqueCover = 5; //云量 9999  tenths
-            Temperature = 5; //℃
-            RelativeHumidity = 27;  //%
-            Pressure = 952;  // hpa百帕
+            Temperature = 7; //℃
+            RelativeHumidity = 25;  //%
+            Pressure = 1000;  // hpa百帕
             Precipitation = 0; //mm
+
+            //宣汉
+            /*WindSpeed = 1.5; //m/s  
+            WindDirection = 45; //degree
+            CeilingHeight = 100; //云底高度 9999  hundreds of feet
+            OpaqueCover = 5; //云量 9999  tenths
+            Temperature = 16.8; //℃
+            RelativeHumidity = 25;  //%
+            Pressure = 1000;  // hpa百帕
+            Precipitation = 0; //mm*/
 
             SubX = 1;
             SubY = parts;  //同上，SubX必须等于1
-            DivideTask(1);  //这里为了方便，预先执行划分任务
+            DivideTask(1, 0);  //这里为了方便，预先执行划分任务
 
-            LayerHeight = 2;  //m
-            LayerCount = 4;  //层数，不含地面
+            LayerHeight = 20;  //m
+            LayerCount = 10;  //层数，不含地面
 
             LayerPart = 0;
             LayerParts = 1;
+
+            spec = "";
+            newspec = "H2S";
         }
         
         //重新计算格网左下角坐标
@@ -162,7 +182,7 @@ namespace dispersion
         //创建UP.DAT  //暂时不用
         private int ComputeUPFile()
         {
-            CreateUPDAT newUp = new CreateUPDAT(StartTime, UPFileName);
+            CreateUPDAT newUp = new CreateUPDAT(StartTime, TimeSpan, UPFileName);
             newUp.LowWindDirection = WindDirection;
             newUp.ws = WindSpeed;
             newUp.CreateUpAirFile();
@@ -247,8 +267,40 @@ namespace dispersion
             return 0;
         }
 
+        //从terrel.out中更新污染源海拔高程
+        public int UpdateElevation()
+        {
+            int a = GridCellsX / 2;
+            int b = GridCellsY / 2;
+            int c = GridCellsX / 2 - 1;
+            int d = GridCellsY / 2 - 1;
+            if (GridCellsY % 2 == 1)
+            {
+                if (GridCellsX % 2 == 1)
+                {
+                    Elevation = Elevations[b][a];
+                }
+                else
+                {
+                    Elevation = (Elevations[b][a] + Elevations[b][c]) / 2.0;
+                }
+            }
+            else
+            {
+                if (GridCellsX % 2 == 1)
+                {
+                    Elevation = (Elevations[b][a] + Elevations[d][a]) / 2.0;
+                }
+                else
+                {
+                    Elevation = (Elevations[b][a] + Elevations[b][c] + Elevations[d][a] + Elevations[d][c]) / 4.0;
+                }
+            }
+            return 0;
+        }
+
         //任务划分
-        public void DivideTask(int division)
+        public void DivideTask(int division, int buffer)
         {
             //先清空已有列表避免冲突
             SubXsw.Clear();
@@ -256,8 +308,8 @@ namespace dispersion
             //二维分割测试
             if (division == 2)
             {
-                SubX = 2;
-                SubY = 2;
+                SubX = (int)Math.Sqrt(SubY);
+                SubY = SubX;
             }
             //暂时采用向下取整，因为方便分割，避免16列分10块若每块2列则后面几块不够
             //实际效率最优时应向上取整，因为14列分10块若每块1列则最后一块有5列，拖慢速度，显然每块2列只用前7块更优
@@ -266,6 +318,12 @@ namespace dispersion
             ComputeSWCoor();
             double xsw = Xsw;
             double ysw = Ysw;
+            //有缓冲区时西南角坐标需进行移动
+            if (division == 2)
+            {
+                xsw = Xsw - buffer * GridSpace;
+                ysw = Ysw - buffer * GridSpace;
+            }
             //西南角坐标依次增加并记录
             for (int i = 0; i < SubX; i++)
             {
@@ -279,6 +337,14 @@ namespace dispersion
             }
             LastX = GridCellsX - (SubX - 1) * SubGridX;
             LastY = GridCellsY - (SubY - 1) * SubGridY;
+            //设置缓冲区
+            if (division == 2)
+            {
+                SubGridXb = SubGridX + 2 * buffer;
+                SubGridYb = SubGridY + 2 * buffer;
+                LastXb = LastX + 2 * buffer;
+                LastYb = LastY + 2 * buffer;
+            }
         }
 
         //并行运行CALMET.EXE(单机版)
@@ -346,50 +412,29 @@ namespace dispersion
         }
 
         //并行运行CALMET.EXE(集群版)，二维分割测试
-        public int ParallelRunCALMETExe3(int p)
+        public int ParallelRunCALMETExe3(int p, int buffer)
         {
             ComputeSURFFile();
             ComputeUPFile();
-            int i = 0;
-            int j = 0;
-            switch (p)
-            {
-                case 0:
-                    i = 0;
-                    j = 0;
-                    break;
-                case 1:
-                    i = 0;
-                    j = 1;
-                    break;
-                case 2:
-                    i = 1;
-                    j = 0;
-                    break;
-                case 3:
-                    i = 1;
-                    j = 1;
-                    break;
-                default:
-                    break;
-            }
+            int i = p / SubX;
+            int j = p % SubX;
             int subgridX, subgridY;
             //用于处理带余数的最后一行（列）
             if (i == SubX - 1)
             {
-                subgridX = LastX;
+                subgridX = LastXb;
             }
             else
             {
-                subgridX = SubGridX;
+                subgridX = SubGridXb;
             }
             if (j == SubY - 1)
             {
-                subgridY = LastY;
+                subgridY = LastYb;
             }
             else
             {
-                subgridY = SubGridY;
+                subgridY = SubGridYb;
             }
             ComputeGEOFile(SubXsw[i], SubYsw[j], subgridX, subgridY);
             //修改inp文件
@@ -423,6 +468,7 @@ namespace dispersion
             CALMET.Close();
             CALMET.Dispose();
             return 0;
+
         }
 
         //并行运行CALMET.EXE(集群版)
@@ -482,6 +528,7 @@ namespace dispersion
                 CALMET.WaitForExit();
                 CALMET.Close();
                 CALMET.Dispose();
+
             }
 
             return 0;
@@ -554,7 +601,7 @@ namespace dispersion
             byte[] B9 = HexReverse(GridCellsX);
             byte[] B10 = HexReverse(GridCellsY);
             byte[] B11 = HexReverse(SubGridY);
-            byte[] B12 = new byte[] { 0x00, 0x00, 0xc8, 0x42 };
+            byte[] B12 = new byte[] { 0x00, 0x00, 0xc8, 0x42 };  //用于改Y方向网格数的十六进制值那一行的第四字节，但未找到规律，暂时不用
             while (br.BaseStream.Position < br.BaseStream.Length)  //修改表头部分
             {
                 byte[] b1 = br.ReadBytes(4);
@@ -584,7 +631,8 @@ namespace dispersion
                     flag1 = true;
                 }
                 //修改Y方向网格数的十六进制值
-                if (BytesEquals(b1, B9) && BytesEquals(b2, B11) && BytesEquals(b4, B12))
+                //if (BytesEquals(b1, B9) && BytesEquals(b2, B11) && BytesEquals(b4, B12))  //第四字节未找到规律，暂时不用
+                if (BytesEquals(b1, B9) && BytesEquals(b2, B11))
                 {
                     b2 = B10;
                     bw.Write(b1);
@@ -768,6 +816,8 @@ namespace dispersion
                 UpdateCALPUFFTimeParameters(item, ref strcontent);
                 UpdateFileNameParameters(item, ref strcontent, "LSAMP", "T");//启用贴地面的网格受体
                 UpdateFileNameParameters(item, ref strcontent, "NREC", "0");//离散受体的个数
+
+                UpdateSpeciesParameters(item, ref strcontent);
             }
             sr.Close();
             StreamWriter sw1 = new StreamWriter(path, false);
@@ -806,6 +856,8 @@ namespace dispersion
                 UpdateFileNameParameters(item, ref strcontent, "PSTLST", dir + "\\output.LST");
                 UpdateFileNameParameters(item, ref strcontent, "TSPATH", dir + "\\");
                 UpdateFileNameParameters(item, ref strcontent, "PLPATH", dir + "\\");
+
+                UpdateSpeciesParameters2(item, ref strcontent);
             }
             sr.Close();
             StreamWriter sw1 = new StreamWriter(path, false);
@@ -1060,13 +1112,13 @@ namespace dispersion
         public void UpdateMetStationParameters(Match item, ref string strcontent)
         {
             //地面站
-            if (item.Value.StartsWith("! SS1  = "))
+            if (item.Value.StartsWith("! SS1  ="))
             {
                 string surfStr = "! SS1  = 'S1'    50000       " + SurfX.ToString() + "     " + SurfY.ToString() + "    8    " + SurfZ.ToString() + "  !";
                 strcontent = strcontent.Replace(item.Value, surfStr);
             }
             //探空站
-            if (item.Value.StartsWith("! US1  = "))
+            if (item.Value.StartsWith("! US1  ="))
             {
                 string upStr = "! US1  = 'U1'   50000    " + UpX.ToString() + "   " +UpY.ToString() + "    8  !";
                 strcontent = strcontent.Replace(item.Value, upStr);
@@ -1079,8 +1131,43 @@ namespace dispersion
             if (item.Value.StartsWith("! X = "))
             {
                 string srcStr = "! X = " + SourceX.ToString() + ", " + SourceY.ToString() + ", " + EmissionHeight.ToString() + ", " + Elevation.ToString() 
-                    + ", 3.0, 5.0, 300.0, 0.0, " + EmissionRate.ToString() + " !";
+                    + ", 3.0, 40.0, 300.0, 0.0, " + EmissionRate.ToString() + " !";
                 strcontent = strcontent.Replace(item.Value, srcStr);
+            }
+        }
+
+        //CALPUFF修改污染物种类信息
+        public void UpdateSpeciesParameters(Match item, ref string strcontent)
+        {
+            if (spec != newspec)
+            {
+                if (item.Value.StartsWith("! CSPEC ="))
+                {
+                    string myString = item.Value;
+                    myString = Regex.Replace(myString, @"\s", "");
+                    string[] strArray = myString.Split(new char[2] { '=', '!' }, StringSplitOptions.RemoveEmptyEntries);
+                    spec = strArray[1];
+                    string newstr = "! CSPEC =          " + newspec + " !";
+                    strcontent = strcontent.Replace(item.Value, newstr);
+                }
+                string s = "!          " + spec;
+                if (item.Value.StartsWith(s))
+                {
+                    string str = "!          " + newspec;
+                    string newstr = item.Value;
+                    newstr = newstr.Replace(s, str);
+                    strcontent = strcontent.Replace(item.Value, newstr);
+                }
+            }
+
+        }
+        //CALPOST修改污染物种类信息
+        public void UpdateSpeciesParameters2(Match item, ref string strcontent)
+        {
+            if (item.Value.StartsWith("! ASPEC ="))
+            {
+                string newstr = "! ASPEC = " + newspec + " !";
+                strcontent = strcontent.Replace(item.Value, newstr);
             }
         }
 
@@ -1232,6 +1319,8 @@ namespace dispersion
                 UpdateCALPUFFTimeParameters(item, ref strcontent);
                 UpdateFileNameParameters(item, ref strcontent, "LSAMP", "F");//与常规运行相反，禁用贴地面的网格受体
                 UpdateFileNameParameters(item, ref strcontent, "NREC", num.ToString());//离散受体的个数
+
+                UpdateSpeciesParameters(item, ref strcontent);
             }
             sr.Close();
             StreamWriter sw1 = new StreamWriter(path, false);
@@ -1295,6 +1384,9 @@ namespace dispersion
                 UpdateFileNameParameters(item, ref strcontent, "TSPATH", dir + "\\");
                 UpdateFileNameParameters(item, ref strcontent, "PLPATH", dir + "\\");
                 UpdateFileNameParameters(item, ref strcontent, "TSUNAM", s);
+                UpdateFileNameParameters(item, ref strcontent, "TUNAM", s);
+
+                UpdateSpeciesParameters2(item, ref strcontent);
             }
             sr.Close();
             StreamWriter sw1 = new StreamWriter(path, false);

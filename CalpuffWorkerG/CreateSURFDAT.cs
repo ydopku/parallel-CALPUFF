@@ -29,23 +29,23 @@ namespace dispersion
         {
             SURFfilename = youSURF;
             CurrentTime = youCurrentTime;
-            period = (youPeriod/60 > 0) ? youPeriod/60 : 1; //分钟转换为小时
-            WindSpeed = new double[period];
-            WindDirection = new double[period];
-            CeilingHeight = new int[period];
-            OpaqueCover = new int[period];
-            Temperature = new double[period];
-            RelativeHumidity = new int[period];
-            Pressure = new double[period];
-            PrecipitationCode = new int[period];
+            period = (youPeriod / 60 > 0) ? youPeriod / 60 : 1; //分钟转换为小时
+            WindSpeed = new double[period + 1];
+            WindDirection = new double[period + 1];
+            CeilingHeight = new int[period + 1];
+            OpaqueCover = new int[period + 1];
+            Temperature = new double[period + 1];
+            RelativeHumidity = new int[period + 1];
+            Pressure = new double[period + 1];
+            PrecipitationCode = new int[period + 1];
 
-            ws = 5; //m/s  
-            wd = 0; //degree
-            cehei = 808; //云底高度 9999  hundreds of feet
+            ws = 1.5; //m/s  
+            wd = 270; //degree
+            cehei = 100; //云底高度 9999  hundreds of feet
             Opa = 5; //云量 9999  tenths
-            press = 952; //hpa百帕
-            hum = 27;  //%
-            temp = 5;  //℃ 
+            press = 1000; //hpa百帕
+            hum = 257;  //%
+            temp = 7;  //℃ 
             preci = 0; //mm
         }
 
@@ -53,44 +53,44 @@ namespace dispersion
         private int GetRealTimeMetData()
         {
             //读取实时数据并赋值
-//             ServiceReference1.xmlSoapClient client = new ServiceReference1.xmlSoapClient("xmlSoap");
-//             DataTable mytable = client.GetCurrentData("气象站");
-      
-//             for (int i = 0; i < mytable.Rows.Count; i++)
-//             {
-//                 if (mytable.Rows[i]["description"].ToString().Contains("风速"))
-//                 {
-//                     double.TryParse(mytable.Rows[i]["value"].ToString(), out ws);
-//                     continue;
-//                 }
-//                 if (mytable.Rows[i]["description"].ToString().Contains("风向"))
-//                 {
-//                     double.TryParse(mytable.Rows[i]["value"].ToString(), out wd);
-//                     continue;
-//                 }
-//                 if (mytable.Rows[i]["description"].ToString().Contains("风压"))
-//                 {
-//                     double.TryParse(mytable.Rows[i]["value"].ToString(), out press);
-//                     continue;
-//                 }
-//                 if (mytable.Rows[i]["description"].ToString().Contains("湿度"))
-//                 {
-//                     int.TryParse(mytable.Rows[i]["value"].ToString(), out hum);
-//                     continue;
-//                 }
-//                 if (mytable.Rows[i]["description"].ToString().Contains("气温"))
-//                 {
-//                     double.TryParse(mytable.Rows[i]["value"].ToString(), out temp);
-//                     continue;
-//                 }
-//                 if (mytable.Rows[i]["description"].ToString().Contains("粉尘"))
-//                 {
-//                     double.TryParse(mytable.Rows[i]["value"].ToString(), out preci);
-//                     continue;
-//                 }
-//             }
+            //             ServiceReference1.xmlSoapClient client = new ServiceReference1.xmlSoapClient("xmlSoap");
+            //             DataTable mytable = client.GetCurrentData("气象站");
 
-            for ( int i = 0; i < period; i++)
+            //             for (int i = 0; i < mytable.Rows.Count; i++)
+            //             {
+            //                 if (mytable.Rows[i]["description"].ToString().Contains("风速"))
+            //                 {
+            //                     double.TryParse(mytable.Rows[i]["value"].ToString(), out ws);
+            //                     continue;
+            //                 }
+            //                 if (mytable.Rows[i]["description"].ToString().Contains("风向"))
+            //                 {
+            //                     double.TryParse(mytable.Rows[i]["value"].ToString(), out wd);
+            //                     continue;
+            //                 }
+            //                 if (mytable.Rows[i]["description"].ToString().Contains("风压"))
+            //                 {
+            //                     double.TryParse(mytable.Rows[i]["value"].ToString(), out press);
+            //                     continue;
+            //                 }
+            //                 if (mytable.Rows[i]["description"].ToString().Contains("湿度"))
+            //                 {
+            //                     int.TryParse(mytable.Rows[i]["value"].ToString(), out hum);
+            //                     continue;
+            //                 }
+            //                 if (mytable.Rows[i]["description"].ToString().Contains("气温"))
+            //                 {
+            //                     double.TryParse(mytable.Rows[i]["value"].ToString(), out temp);
+            //                     continue;
+            //                 }
+            //                 if (mytable.Rows[i]["description"].ToString().Contains("粉尘"))
+            //                 {
+            //                     double.TryParse(mytable.Rows[i]["value"].ToString(), out preci);
+            //                     continue;
+            //                 }
+            //             }
+
+            for (int i = 0; i < period + 1; i++)
             {
                 WindSpeed[i] = ws;
                 WindDirection[i] = wd;
@@ -107,11 +107,11 @@ namespace dispersion
         //SURF文件头处的起止时间与数据部分的时间的关系？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？
         public int CreateSURFFile()
         {
-            if ( GetRealTimeMetData() == 0 )//已读取气象数据，可以直接写文件
+            if (GetRealTimeMetData() == 0)//已读取气象数据，可以直接写文件
             {
                 DateTime st, et, ct, nt; //开始时间， 结束时间，当前时间，下一个时间  SURF文件头处的起止时间与数据部分的时间的关系？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？
                 st = ct = nt = CurrentTime; //暂时设置为当前时间，通常情况起始时间段包含了计算所需时间即可，即st<CurrentTime
-                et = CurrentTime.AddHours(period);
+                et = CurrentTime.AddHours(period + 1);
                 char s = ' ';
                 string DataString = "";
                 string headerString = "";
@@ -120,11 +120,11 @@ namespace dispersion
                                       "Produced by SMERGE Version: 5.7.0  Level: 121203\r\n" +
                                       "NONE\r\n" +
                                       "UTC+0800\r\n" +
-                                      "  " + st.Year.ToString().PadLeft(4, s) + " " + st.DayOfYear.ToString().PadLeft(3, s) + "  " + st.Hour.ToString().PadLeft(2, s) + "  "  + (st.Minute*60+st.Second).ToString().PadLeft(4, s) +
+                                      "  " + st.Year.ToString().PadLeft(4, s) + " " + st.DayOfYear.ToString().PadLeft(3, s) + "  " + st.Hour.ToString().PadLeft(2, s) + "  " + (st.Minute * 60 + st.Second).ToString().PadLeft(4, s) +
                                       "  " + et.Year.ToString().PadLeft(4, s) + " " + et.DayOfYear.ToString().PadLeft(3, s) + "  " + et.Hour.ToString().PadLeft(2, s) + "  " + (et.Minute * 60 + et.Second).ToString().PadLeft(4, s) +
                                       "    1\r\n" +
                                       "   50000\r\n";
-                for ( int i = 0; i < period; i++ )
+                for (int i = 0; i < period + 1; i++)
                 {
                     ct = nt;
                     nt = nt.AddHours(1);//加一分钟，每分钟一条数据

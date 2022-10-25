@@ -22,8 +22,8 @@ CLOUD.DAT     input    * CLDDAT = *
 PRECIP.DAT    input    * PRCDAT = *
 WT.DAT        input    * WTDAT = *
 
-CALMET.LST    output   ! METLST = CALMET01.LST !
-CALMET.DAT    output   ! METDAT = CALMET01.DAT !
+CALMET.LST    output   ! METLST = CALMET00.LST !
+CALMET.DAT    output   ! METDAT = CALMET00.DAT !
 PACOUT.DAT    output   * PACDAT = *
 
 All file names will be converted to lower case if LCFILES = T
@@ -113,16 +113,16 @@ NOTES: (1) File/path names can be up to 70 characters in length
 INPUT GROUP: 1 -- General run control parameters
 --------------
 
-     Starting date:    Year   (IBYR)  --    No default   ! IBYR = 2018 !
-                       Month  (IBMO)  --    No default   ! IBMO = 3 !
-                       Day    (IBDY)  --    No default   ! IBDY = 1 !
-     Starting time:    Hour   (IBHR)  --    No default   ! IBHR = 4 !
+     Starting date:    Year   (IBYR)  --    No default   ! IBYR = 2003 !
+                       Month  (IBMO)  --    No default   ! IBMO = 12 !
+                       Day    (IBDY)  --    No default   ! IBDY = 23 !
+     Starting time:    Hour   (IBHR)  --    No default   ! IBHR = 0 !
                        Second (IBSEC) --    No default   ! IBSEC = 0 !
 
-     Ending date:      Year   (IEYR)  --    No default   ! IEYR = 2018 !
-                       Month  (IEMO)  --    No default   ! IEMO = 3 !
-                       Day    (IEDY)  --    No default   ! IEDY = 1 !
-     Ending time:      Hour   (IEHR)  --    No default   ! IEHR = 6 !
+     Ending date:      Year   (IEYR)  --    No default   ! IEYR = 2003 !
+                       Month  (IEMO)  --    No default   ! IEMO = 12 !
+                       Day    (IEDY)  --    No default   ! IEDY = 23 !
+     Ending time:      Hour   (IEHR)  --    No default   ! IEHR = 4 !
                        Second (IESEC) --    No default   ! IESEC = 0 !
 
       UTC time zone         (ABTZ) -- No default       ! ABTZ = UTC+0800 !
@@ -132,7 +132,7 @@ INPUT GROUP: 1 -- General run control parameters
 
      Length of modeling time-step (seconds)
      Must divide evenly into 3600 (1 hour)
-     (NSECDT)                        Default:3600     ! NSECDT = 60 !
+     (NSECDT)                        Default:3600     ! NSECDT = 3600 !
                                      Units: seconds
 
      Run type            (IRTYPE) -- Default: 1       ! IRTYPE = 1 !
@@ -277,17 +277,17 @@ INPUT GROUP: 2 -- Map Projection and Grid control parameters
      Rectangular grid defined for projection PMAP,
      with X the Easting and Y the Northing coordinate
 
-            No. X grid cells (NX)      No default     ! NX = 100 !
-            No. Y grid cells (NY)      No default     ! NY = 25 !
+            No. X grid cells (NX)      No default     ! NX = 50 !
+            No. Y grid cells (NY)      No default     ! NY = 50 !
 
-     Grid spacing (DGRIDKM)            No default     ! DGRIDKM = 0.1 !
+     Grid spacing (DGRIDKM)            No default     ! DGRIDKM = 1 !
                                        Units: km
 
      Reference grid coordinate of
      SOUTHWEST corner of grid cell (1,1)
 
-        X coordinate (XORIGKM)         No default     ! XORIGKM = 226.7887 !
-        Y coordinate (YORIGKM)         No default     ! YORIGKM = 3470.862 !
+        X coordinate (XORIGKM)         No default     ! XORIGKM = 212.321 !
+        Y coordinate (YORIGKM)         No default     ! YORIGKM = 3449.793 !
                                        Units: km
 
 
@@ -591,10 +591,10 @@ INPUT GROUP: 5 -- Wind Field Options and Parameters
         or RMAX3, then the closest station will be used)
 
        Maximum radius of influence over land
-       in the surface layer (RMAX1)          No default      ! RMAX1 = 1 !
+       in the surface layer (RMAX1)          No default      ! RMAX1 = 0.1 !
                                              Units: km
        Maximum radius of influence over land
-       aloft (RMAX2)                         No default      ! RMAX2 = 1 !
+       aloft (RMAX2)                         No default      ! RMAX2 = 0.1 !
                                              Units: km
        Maximum radius of influence over water
        (RMAX3)                               No default      ! RMAX3 = 0 !
@@ -607,12 +607,12 @@ INPUT GROUP: 5 -- Wind Field Options and Parameters
        the wind field interpolation (RMIN)   Default: 0.1    ! RMIN = 0.1 !
                                              Units: km
        Radius of influence of terrain
-       features (TERRAD)                     No default      ! TERRAD = 1 !
+       features (TERRAD)                     No default      ! TERRAD = 100 !
 
                                              Units: km
        Relative weighting of the first
        guess field and observations in the
-       SURFACE layer (R1)                    No default      ! R1 = 1 !
+       SURFACE layer (R1)                    No default      ! R1 = 0.1 !
        (R1 is the distance from an           Units: km
        observational station at which the
        observation and first guess field are
@@ -620,7 +620,7 @@ INPUT GROUP: 5 -- Wind Field Options and Parameters
 
        Relative weighting of the first
        guess field and observations in the
-       layers ALOFT (R2)                     No default      ! R2 = 1 !
+       layers ALOFT (R2)                     No default      ! R2 = 0.1 !
        (R2 is applied in the upper layers    Units: km
        in the same manner as R1 is used in
        the surface layer).
@@ -1010,7 +1010,7 @@ INPUT GROUP: 7 -- Surface meteorological station parameters
          Name     ID     X coord.   Y coord.    Time   Anem.
                           (km)       (km)       zone   Ht.(m)
        ----------------------------------------------------------
-! SS1  ='S1'     50000   626.876   4234.548       8    10.000  !
+! SS1  = 'S1'    50000       237.321     3474.793    8    10  !
 
 -------------------
       1
@@ -1035,7 +1035,7 @@ INPUT GROUP: 8 -- Upper air meteorological station parameters
          Name    ID      X coord.   Y coord.  Time zone
                            (km)       (km)
         -----------------------------------------------
-! US1  ='U1'     50000   626.876   4234.548       0 !
+! US1  = 'U1'   50000    237.321   3474.793    8  !
 
 -------------------
       1

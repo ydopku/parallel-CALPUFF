@@ -161,13 +161,13 @@ INPUT GROUP: 2 -- Map Projection and Grid Information for Output
 
      Reference coordinates X,Y (km) assigned to the southwest corner 
      of grid cell (1,1)  (lower left corner of grid)
-     (XREFKM)                   No Default      ! XREFKM = 226.7887 !
-     (YREFKM)                   No Default      ! YREFKM = 3468.362 !
+     (XREFKM)                   No Default      ! XREFKM = 212.321 !
+     (YREFKM)                   No Default      ! YREFKM = 3449.793 !
 
      Cartesian grid definition
-     No. X grid cells (NX)      No default      ! NX = 100 !
-     No. Y grid cells (NY)      No default      ! NY = 100 !
-     Grid Spacing (DGRIDKM)     No default      ! DGRIDKM = 0.1 !
+     No. X grid cells (NX)      No default      ! NX = 50 !
+     No. Y grid cells (NY)      No default      ! NY = 50 !
+     Grid Spacing (DGRIDKM)     No default      ! DGRIDKM = 1 !
      in kilometers
 
 

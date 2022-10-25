@@ -83,10 +83,11 @@ namespace dispersion
                             int p = int.Parse(strs[0]);
                             int parts = int.Parse(strs[1]);
                             int division = int.Parse(strs[3]);
-                            RunCalmetP(p, parts, division);
+                            int buffer = int.Parse(strs[4]);
+                            RunCalmetP(p, parts, division, buffer);
                             string path1 = "CALMET0" + p.ToString() + ".DAT";
                             string path2 = "CALMET0" + p.ToString() + ".zip";
-                            ZipC(p);
+                            ZipC(p, parts, division);
                             DateTime t2 = DateTime.Now;
                             TimeSpan ts = t2.Subtract(t1);
                             Console.WriteLine("Calmet Task {0} complete in {1} seconds", strs[0], ts.TotalSeconds);
@@ -134,6 +135,7 @@ namespace dispersion
             }
         }
 
+        /*
         /// <summary>
         /// Assumes only valid positive integer input.
         /// Don't expect this one to work for big numbers, and it's probably the slowest recursive implementation possible.
@@ -153,21 +155,31 @@ namespace dispersion
 
             return fib(n - 1) + fib(n - 2);
         }
+        */
 
         //run parallel calmet
-        private static void RunCalmetP(int p, int parts, int division)
+        private static void RunCalmetP(int p, int parts, int division, int buffer)
         {
             RunCALPUFF newCompute;
-            DateTime CurrentTime = new DateTime(2018, 3, 1, 4, 0, 0);
+            DateTime CurrentTime = new DateTime(2003, 12, 23, 0, 0, 0);
             double SourceX, SourceY, Elavation;
-            SourceX = 231.7887;
-            SourceY = 3473.362;
-            Elavation = 844;
-            newCompute = new RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, p, parts);
-            newCompute.DivideTask(division);
+            //重庆高桥
+            SourceX = 237.321;
+            SourceY = 3474.793;
+            Elavation = 606.4;
+            //四川宣汉（川东北环评报告）
+            /*SourceX = 779.834;
+            SourceY = 3474.128;
+            Elavation = 384.08;*/
+            //重庆高桥
+            newCompute = new dispersion.RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, p, parts);
+            //四川宣汉（川东北环评报告）
+            //newCompute = new dispersion.RunCALPUFF(SourceX, SourceY, Elavation, 48, CurrentTime, p, parts);
+
+            newCompute.DivideTask(division, buffer);
             if (division == 2)
             {
-                newCompute.ParallelRunCALMETExe3(p);
+                newCompute.ParallelRunCALMETExe3(p, buffer);
             }
             else
             {
@@ -179,13 +191,21 @@ namespace dispersion
         private static void RunCalpuff()
         {
             RunCALPUFF newCompute;
-            DateTime CurrentTime = new DateTime(2018, 3, 1, 4, 0, 0);
+            DateTime CurrentTime = new DateTime(2003, 12, 23, 0, 0, 0);
             double SourceX, SourceY, Elavation;
-            SourceX = 231.7887;
-            SourceY = 3473.362;
-            Elavation = 844;
-            newCompute = new RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, 1, 1);
-            newCompute.DivideTask(1);
+            //重庆高桥
+            SourceX = 237.321;
+            SourceY = 3474.793;
+            Elavation = 606.4;
+            //四川宣汉（川东北环评报告）
+            /*SourceX = 779.834;
+            SourceY = 3474.128;
+            Elavation = 384.08;*/
+            //重庆高桥
+            newCompute = new dispersion.RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, 1, 1);
+            //四川宣汉（川东北环评报告）
+            //newCompute = new dispersion.RunCALPUFF(SourceX, SourceY, Elavation, 48, CurrentTime, 1, 1);
+            newCompute.DivideTask(1, 0);
             newCompute.RunCALPUFFExe();
             newCompute.RunCALPOSTExe();
         }
@@ -194,12 +214,20 @@ namespace dispersion
         private static void RunCalpuffP(int layer, int layerpart, int layerparts, string timestep)
         {
             RunCALPUFF newCompute;
-            DateTime CurrentTime = new DateTime(2018, 3, 1, 4, 0, 0);
+            DateTime CurrentTime = new DateTime(2003, 12, 23, 0, 0, 0);
             double SourceX, SourceY, Elavation;
-            SourceX = 231.7887;
-            SourceY = 3473.362;
-            Elavation = 844;
-            newCompute = new RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, 1, 1);
+            //重庆高桥
+            SourceX = 237.321;
+            SourceY = 3474.793;
+            Elavation = 606.4;
+            //四川宣汉（川东北环评报告）
+            /*SourceX = 779.834;
+            SourceY = 3474.128;
+            Elavation = 384.08;*/
+            //重庆高桥
+            newCompute = new dispersion.RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, 1, 1);
+            //四川宣汉（川东北环评报告）
+            //newCompute = new dispersion.RunCALPUFF(SourceX, SourceY, Elavation, 48, CurrentTime, 1, 1);
             newCompute.LayerPart = layerpart;
             newCompute.LayerParts = layerparts;
             if (timestep == "s")
@@ -210,8 +238,9 @@ namespace dispersion
             {
                 newCompute.PUFFTimeStep = 60;
             }
-            newCompute.DivideTask(1);
+            newCompute.DivideTask(1, 0);
             newCompute.ReadElevations();
+            newCompute.UpdateElevation();
             newCompute.RunCALPUFF3D(layer * newCompute.LayerHeight);
             newCompute.RunCALPOST3D(layer);
         }
@@ -221,14 +250,14 @@ namespace dispersion
         {
             string zipFilePath = "result" + s + ".zip";
             Console.WriteLine(zipFilePath);
-            string path1 = "Layer" + s + "\\2018_M03_D01_0";
-            string path2 = "(UTC+0800)_L00_CH4_1MIN_CONC.DAT";
+            string path1 = "Layer" + s + "\\2003_M012_D23_0";
+            string path2 = "(UTC+0800)_L00_H2S_1MIN_CONC.DAT";
             using (FileStream zipFileToOpen = new FileStream(zipFilePath, FileMode.Create))
             using (ZipArchive archive = new ZipArchive(zipFileToOpen, ZipArchiveMode.Create))
             {
                 for (int i = 0; i < 60; i++)
                 {
-                    int n = 400 + i;
+                    int n = 000 + i;
                     string path = path1 + n.ToString() + path2;
                     ZipArchiveEntry readMeEntry = archive.CreateEntry(path);
                     using (Stream stream = readMeEntry.Open())
@@ -239,7 +268,18 @@ namespace dispersion
                 }
                 for (int i = 0; i < 60; i++)
                 {
-                    int n = 500 + i;
+                    int n = 100 + i;
+                    string path = path1 + n.ToString() + path2;
+                    ZipArchiveEntry readMeEntry = archive.CreateEntry(path);
+                    using (Stream stream = readMeEntry.Open())
+                    {
+                        byte[] bytes = File.ReadAllBytes(path);
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                }
+                for (int i = 0; i < 60; i++)
+                {
+                    int n = 200 + i;
                     string path = path1 + n.ToString() + path2;
                     ZipArchiveEntry readMeEntry = archive.CreateEntry(path);
                     using (Stream stream = readMeEntry.Open())
@@ -256,27 +296,49 @@ namespace dispersion
         {
             string zipFilePath = "result" + s2 + "-" + s3 + ".zip";
             Console.WriteLine(zipFilePath);
-            string path = "Layer" + s2 + "\\TSERIES_CH4_1MIN_CONC_" + s2 + "-" + s3 + ".DAT";
+            string path1 = "Layer" + s2 + "\\TSERIES_H2S_1MIN_CONC_" + s2 + "-" + s3 + ".DAT";
             if (s5 == "s")
             {
-                path = "Layer" + s2 + "\\TSERIES_CH4_1SEC_CONC_" + s2 + "-" + s3 + ".DAT";
+                path1 = "Layer" + s2 + "\\TSERIES_H2S_1SEC_CONC_" + s2 + "-" + s3 + ".DAT";
+            }
+            string path2 = "Layer" + s2 + "\\RANK(ALL)_H2S_1MIN_CONC_" + s2 + "-" + s3 + ".DAT";
+            if (s5 == "s")
+            {
+                path2 = "Layer" + s2 + "\\RANK(ALL)_H2S_1SEC_CONC_" + s2 + "-" + s3 + ".DAT";
             }
             using (FileStream zipFileToOpen = new FileStream(zipFilePath, FileMode.Create))
             using (ZipArchive archive = new ZipArchive(zipFileToOpen, ZipArchiveMode.Create))
             {
-                ZipArchiveEntry readMeEntry = archive.CreateEntry(path);
+                ZipArchiveEntry readMeEntry = archive.CreateEntry(path1);
                 using (Stream stream = readMeEntry.Open())
                 {
-                    byte[] bytes = File.ReadAllBytes(path);
+                    byte[] bytes = File.ReadAllBytes(path1);
+                    stream.Write(bytes, 0, bytes.Length);
+                }
+                readMeEntry = archive.CreateEntry(path2);
+                using (Stream stream = readMeEntry.Open())
+                {
+                    byte[] bytes = File.ReadAllBytes(path2);
                     stream.Write(bytes, 0, bytes.Length);
                 }
             }
         }
-        private static void ZipC(int p)
+        private static void ZipC(int p, int parts, int division)
         {
             string zipFilePath = "CALMET0" + p.ToString() + ".zip";
             Console.WriteLine(zipFilePath);
-            string path = "CALMET0" + p.ToString() + ".DAT";
+            string path;
+            if (division == 1)
+            {
+                path = "CALMET0" + p.ToString() + ".DAT";
+            }
+            else
+            {
+                int subx = (int)Math.Sqrt(parts);
+                int i = p / subx;
+                int j = p % subx;
+                path = "CALMET" + i.ToString() + j.ToString() + ".DAT";
+            }
             using (FileStream zipFileToOpen = new FileStream(zipFilePath, FileMode.Create))
             using (ZipArchive archive = new ZipArchive(zipFileToOpen, ZipArchiveMode.Create))
             {

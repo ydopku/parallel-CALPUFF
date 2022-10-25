@@ -35,13 +35,13 @@ Output Files
 
 File                      Default File Name
 ----                      -----------------
-List File                 CALPOST.LST        ! PSTLST = Layer4\output.LST !
+List File                 CALPOST.LST        ! PSTLST = Layer0\output.LST !
 
-Pathname for Timeseries Files   (blank)      ! TSPATH = Layer4\ !
+Pathname for Timeseries Files   (blank)      ! TSPATH = Layer0\ !
 (activate with exclamation points only if
 providing NON-BLANK character string)
 
-Pathname for Plot Files   (blank)            ! PLPATH = Layer4\ !
+Pathname for Plot Files   (blank)            ! PLPATH = Layer0\ !
 (activate with exclamation points only if
  providing NON-BLANK character string)
 
@@ -52,12 +52,12 @@ User Character String (U) to augment default filenames
 Timeseries          TSERIES_ASPEC_ttHR_CONC_TSUNAM.DAT
 Peak Value          PEAKVAL_ASPEC_ttHR_CONC_TSUNAM.DAT
 
-                                             ! TSUNAM = 4-7 !
+                                             ! TSUNAM = 0-0 !
 
 Top Nth Rank Plot   RANK(ALL)_ASPEC_ttHR_CONC_TUNAM.DAT
                 or  RANK(ii)_ASPEC_ttHR_CONC_TUNAM.GRD 
 
-                                             ! TUNAM = c !
+                                             ! TUNAM = 0-0 !
 
 Exceedance Plot      EXCEED_ASPEC_ttHR_CONC_XUNAM.DAT
                  or  EXCEED_ASPEC_ttHR_CONC_XUNAM.GRD
@@ -932,7 +932,7 @@ Values:
 
     Variable Default  Assignment (VARIABLE = v(1), v(2), ... v(NSPEC))
     -------- -------  ------------------------------------------------
-    Species  (none)  ! ASPEC = CH4 !
+    Species  (none)  ! ASPEC = H2S !
     Layer      1     ! ILAYER = 1 !
     Units      1     ! IPRTU = 3 !
     Multiply  0.0    ! A = 0.0 !
