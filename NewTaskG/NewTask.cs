@@ -47,14 +47,14 @@ namespace dispersion
             };
         }
 
-        public Task<string> CallAsync(int p, int parts, string s, int division, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<string> CallAsync(int p, int parts, string s, int division, int buffer, CancellationToken cancellationToken = default(CancellationToken))
         {
             IBasicProperties props = channel.CreateBasicProperties();
             var correlationId = Guid.NewGuid().ToString();
             props.CorrelationId = correlationId;
             props.ReplyTo = replyQueueName;
             //props.Expiration = "10000";
-            var messageBytes = Encoding.UTF8.GetBytes(p.ToString() + "," + parts.ToString() + "," + s + "," + division.ToString());
+            var messageBytes = Encoding.UTF8.GetBytes(p.ToString() + "," + parts.ToString() + "," + s + "," + division.ToString() + "," + buffer.ToString());
             var tcs = new TaskCompletionSource<string>();
             callbackMapper.TryAdd(correlationId, tcs);
             channel.ExchangeDeclare(exchange: "model_request", type: "direct");
@@ -113,13 +113,14 @@ namespace dispersion
         private static int part = -1;  //calmet的第几部分
         private static int parts = 10;  //总份数
         private static int division = 1;  //分割方式,1为一维y轴分割，2为二维分割
+        private static int buffer = 0;  //缓冲区大小(n行n列)
         private static int layer = 0;  //第几层
-        private static int layercount = 4;  //总层数(不含地面)，默认5层，每层2m
-        private static int layerparts = 10;  //每层按受体点数量划分为若干部分
+        private static int layercount = 10;  //总层数(不含地面)，默认10层，每层20m
+        private static int layerparts = 1;  //每层按受体点数量划分为若干部分
         private static int layerpart = -1;  //每层的第几部分
         private static string timestep = "m";  //默认为分钟级计算
 
-        private static bool calmet = false;
+        private static bool calmet = true;
         private static bool calpuff = true;  //是否计算该模块，测试用
 
         //method for fib
@@ -148,22 +149,34 @@ namespace dispersion
         }
         */
 
+        //test
+        public static void Main1(string[] args)
+        {
+            parts = 9;
+            division = 2;
+            buffer = 2;
+            Merge2D();
+        }
+
         //method for model library
         public static void Main(string[] args)
         {
             Console.WriteLine("Model Client");
-            Console.WriteLine("Usage:dotnet run num_of_parts");
+            Console.WriteLine("Usage:dotnet run PARTS DIVISION BUFFER LAYERCOUNT LAYERPARTS TIMESTEP");
             List<EventWaitHandle> waits = new List<EventWaitHandle>();
             if (calmet)
             {
-                int num1 = args.Length > 0 ? int.Parse(args[0]) : 10;
+                int num1 = args.Length > 0 ? int.Parse(args[0]) : 9;
                 parts = num1;
-                int num0 = args.Length > 1 ? int.Parse(args[1]) : 1;
+                int num0 = args.Length > 1 ? int.Parse(args[1]) : 2;
                 division = num0;
-                if (division == 2)
+                int num01 = args.Length > 2 ? int.Parse(args[2]) : 2;
+                buffer = num01;
+
+                /*if (division == 2)
                 {
-                    parts = 4;
-                }
+                    parts = (int)Math.Sqrt(parts);
+                }*/
 
                 DateTime t1 = DateTime.Now;
                 for (int i = 0; i < parts; i++)
@@ -186,18 +199,20 @@ namespace dispersion
                 }
                 else
                 {
-                    //Todo:二维分割的拼接方法
+                    UnZip0(parts);
+                    Merge2D();
                 }
                 Zip();
             }
+            //Merge();
             if (calpuff)
             {
                 DateTime t3 = DateTime.Now;
-                int num2 = args.Length > 2 ? int.Parse(args[2]) : 4;
+                int num2 = args.Length > 3 ? int.Parse(args[3]) : 0;
                 layercount = num2;
-                int num3 = args.Length > 3 ? int.Parse(args[3]) : 10;
+                int num3 = args.Length > 4 ? int.Parse(args[4]) : 1;
                 layerparts = num3;
-                timestep = args.Length > 4 ? args[4] : "m";
+                timestep = args.Length > 5 ? args[5] : "m";
                 for (int i = 0; i <= layercount; i++)
                 {
                     for (int j = 1; j <= layerparts; j++)
@@ -249,7 +264,7 @@ namespace dispersion
             var rpcClient = new RpcClient();
             Console.WriteLine(" [x] Requesting calmet result part {0}", p);
             string s = GetIpAddress();
-            var response = await rpcClient.CallAsync(p, parts, s, d);
+            var response = await rpcClient.CallAsync(p, parts, s, d, buffer);
             string url = "http://" + response + "/calpuffWorkerP/" + "CALMET0" + p.ToString() + ".zip";
             string result = "CALMET0" + p.ToString() + ".zip";
             HttpDownloadFile(url, result);
@@ -273,13 +288,43 @@ namespace dispersion
         private static int Merge()
         {
             RunCALPUFF newCompute;
-            DateTime CurrentTime = new DateTime(2018, 3, 1, 4, 0, 0);
+            DateTime CurrentTime = new DateTime(2003, 12, 23, 0, 0, 0);
             double SourceX, SourceY, Elavation;
-            SourceX = 231.7887;
-            SourceY = 3473.362;
-            Elavation = 844;
+            //重庆高桥
+            SourceX = 237.321;
+            SourceY = 3474.793;
+            Elavation = 606.4;
+            //四川宣汉（川东北环评报告）
+            /*SourceX = 779.834;
+            SourceY = 3474.128;
+            Elavation = 384.08;*/
+            //重庆高桥
             newCompute = new RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, 0, parts);
+            //四川宣汉（川东北环评报告）
+            //newCompute = new RunCALPUFF(SourceX, SourceY, Elavation, 48, CurrentTime, 0, parts);
+            newCompute.DivideTask(division, buffer);
             newCompute.MergeCalmet();
+            return 0;
+        }
+        private static int Merge2D()
+        {
+            RunCALPUFF newCompute;
+            DateTime CurrentTime = new DateTime(2003, 12, 23, 0, 0, 0);
+            double SourceX, SourceY, Elavation;
+            //重庆高桥
+            SourceX = 237.321;
+            SourceY = 3474.793;
+            Elavation = 606.4;
+            //四川宣汉（川东北环评报告）
+            /*SourceX = 779.834;
+            SourceY = 3474.128;
+            Elavation = 384.08;*/
+            //重庆高桥
+            newCompute = new RunCALPUFF(SourceX, SourceY, Elavation, 49, CurrentTime, 0, parts);
+            //四川宣汉（川东北环评报告）
+            //newCompute = new RunCALPUFF(SourceX, SourceY, Elavation, 48, CurrentTime, 0, parts);
+            newCompute.DivideTask(division, buffer);
+            newCompute.MergeCalmet2D(buffer);
             return 0;
         }
 
@@ -377,7 +422,6 @@ namespace dispersion
                 ZipFile.ExtractToDirectory(path, "../NewTaskP/", true);
             }
         }
-
         private static void UnZip(int c, int p)
         {
             for (int i = 0; i <= c; i++)
